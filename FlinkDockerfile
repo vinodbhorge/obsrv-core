@@ -1,0 +1,11 @@
+FROM --platform=linux/x86_64 flink:1.20-scala_2.12-java11
+USER flink
+# RUN mkdir $FLINK_HOME/custom-lib
+RUN wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-10.0/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
+RUN wget https://repo1.maven.org/maven2/org/apache/flink/flink-s3-fs-hadoop/1.20.0/flink-s3-fs-hadoop-1.20.0.jar
+RUN wget https://repo.maven.apache.org/maven2/org/apache/hudi/hudi-flink1.17-bundle/0.15.0/hudi-flink1.17-bundle-0.15.0.jar
+RUN cp flink-shaded-hadoop-2-uber-2.8.3-10.0.jar $FLINK_HOME/lib
+RUN cp flink-s3-fs-hadoop-1.20.0.jar $FLINK_HOME/lib
+#RUN cp hudi-flink1.17-bundle-0.15.0.jar $FLINK_HOME/lib
+## COPY ./target/hudi-connector-1.0.0.jar $FLINK_HOME/custom-lib
+#COPY ./target/hudi-connector-1.0.0.jar $FLINK_HOME/lib
