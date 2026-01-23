@@ -1,15 +1,16 @@
-name: Build and Deploy
-run-name: Workflow run for ${{ github.ref }}
+name: Build and Push to ECR
+run-name: Build and Push for ${{ github.ref }}
 on:
   push:
+    branches:
+      - feature/obsrv-service
     tags:
-      - '*'
+      - "*"
   workflow_dispatch:
-    inputs:
-      aws-deploy:
-        type: boolean
-        required: true
-        default: false
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build-image:
@@ -32,93 +33,27 @@ jobs:
           - image: "cache-indexer"
             target: "cache-indexer-image"
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          fetch-depth: 0
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Login to docker hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Get build number
+        id: build-number
+        run: echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_OUTPUT
 
-      - name: Build ${{matrix.image}} image and push
+      - name: Build ${{matrix.image}} docker image and push
         uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64
           target: ${{matrix.target}}
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{matrix.image}}:${{ github.ref_name }}
-
-
-  aws-deploy:
-    needs: build-image
-    if: github.event.inputs.aws-deploy == 'True'
-    runs-on: ubuntu-latest
-    environment: aws-dev
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Terragrunt
-        uses: autero1/action-terragrunt@v1.1.0
-        with:
-          terragrunt_version: v0.45.8
-      - name: Terragrunt installation
-        run: terragrunt --version
-
-      - name: Clone the terraform deployment repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ vars.DEPLOY_REPO }}
-          path: deploy
-          ref: ${{ vars.DEPLOY_REPO_REF }}
-
-      - name: Fetch and update kubeconfig file
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-        run: |
-          aws eks --region ${{ vars.AWS_REGION }} update-kubeconfig --name ${{ vars.KUBERNETES_CLUSTER_NAME }}
-
-      - name: Run terraform init and apply
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          AWS_TERRAFORM_BACKEND_BUCKET_NAME: ${{ vars.AWS_TERRAFORM_BACKEND_BUCKET_NAME }}
-          AWS_TERRAFORM_BACKEND_BUCKET_REGION: ${{ vars.AWS_TERRAFORM_BACKEND_BUCKET_REGION }}
-          KUBE_CONFIG_PATH: ~/.kube/config
-        run: |
-          cd deploy/terraform/aws
-          terragrunt init
-          terragrunt apply -auto-approve -var unified_pipeline_enabled={{ vars.MERGED_PIPELINE || 'true' }} --replace='module.flink.helm_release.flink' \
-          -var flink_image_tag=${{ github.ref_name }}
-
-  azure-deploy:
-    needs: build-image
-    if: vars.CLOUD_PROVIDER == 'azure'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone the terraform deployment repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ vars.DEPLOY_REPO }}
-          path: deploy
-          ref: ${{ vars.DEPLOY_REPO_REF }}
-
-      - name: Run terraform init and apply
-        env:
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-        run: |
-          cd deploy/terraform/azure
-          terragrunt init
-          terragrunt apply -auto-approve -replace=module.flink.helm_release.flink \
-          -var flink_container_registry=${{ secrets.DOCKERHUB_USERNAME }} \
-          -var flink_image_tag=${{ github.ref_name }}
+          tags: |
+            522814700227.dkr.ecr.us-east-1.amazonaws.com/lms_sb_obsrv_core:${{matrix.image}}-latest-${{ steps.build-number.outputs.BUILD_NUMBER }}
