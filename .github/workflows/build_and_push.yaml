@@ -1,0 +1,64 @@
+name: Build and Push to ECR
+run-name: Build and Push for ${{ github.ref }}
+on:
+  push:
+    branches:
+      - feature/obsrv-service
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: "unified-pipeline"
+            target: "unified-image"
+          - image: "cache-indexer"
+            target: "cache-indexer-image"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          DATE_TAG=$(date +%y%m%d)
+          RELEASE_NAME="${{matrix.image}}"
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            IMAGE_TAG="${RELEASE_NAME}.${DATE_TAG}-${{ github.run_number }}"
+          else
+            IMAGE_TAG="${RELEASE_NAME}.${DATE_TAG}-${{ github.run_number }}-hotfix"
+          fi
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build ${{matrix.image}} docker image and push
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64
+          target: ${{matrix.target}}
+          push: true
+          tags: |
+            061051225269.dkr.ecr.us-east-1.amazonaws.com/lms_sb_obsrv_core:${{ steps.image-tag.outputs.IMAGE_TAG }}
+
+      - name: Update environment file
+        run: |
+          sed -i "s/TF_VAR_imageversion=.*/TF_VAR_imageversion=${{ steps.image-tag.outputs.IMAGE_TAG }}/" cicd/community/dev/.env
+
+      - name: Run git tag script
+        run: bash /tmp/lms-cicd-scripts/utility/script/gitTag.sh
