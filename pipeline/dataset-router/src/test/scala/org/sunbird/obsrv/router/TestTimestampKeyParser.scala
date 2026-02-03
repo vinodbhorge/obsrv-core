@@ -92,12 +92,12 @@ class TestTimestampKeyParser extends FlatSpec with Matchers {
     result2.isValid should be(true)
     result2.value.asInstanceOf[Long] should be(170157116512L)
 
-    // Validate date parser without timezone
+    // Validate date parser with Asia/Kolkata timezone (GMT+05:30)
     val result3 = TimestampKeyParser.parseTimestampKey(
-      DatasetConfig(IndexingConfig(olapStoreEnabled = false, lakehouseEnabled = false, cacheEnabled = false), KeysConfig(Some("id"), None, Some("date"), Some("yyyy-MM-dd")), datasetTimezone = None),
+      DatasetConfig(IndexingConfig(olapStoreEnabled = false, lakehouseEnabled = false, cacheEnabled = false), KeysConfig(Some("id"), None, Some("date"), Some("yyyy-MM-dd")), datasetTimezone = Some("Asia/Kolkata")),
       JSONUtil.deserialize[mutable.Map[String, AnyRef]]("""{"id":1234, "date":"2023-03-01"}"""))
     result3.isValid should be(true)
-    result3.value.asInstanceOf[Long] should be(1677609000000L)
+    result3.value.asInstanceOf[Long] should be(1677628800000L)
 
     // Validate date parser with timezone
     val result4 = TimestampKeyParser.parseTimestampKey(
