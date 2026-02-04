@@ -3,7 +3,7 @@ run-name: Build and Push for ${{ github.ref }}
 on:
   push:
     branches:
-      - feature/obsrv-service
+      - main
     tags:
       - "*"
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
         id: image-tag
         run: |
           DATE_TAG=$(date +%d%m%y)
-          if [ "${{ github.ref_name }}" = "feature/obsrv-service" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             IMAGE_TAG="R1_UNIFIED.$DATE_TAG-${{ github.run_number }}"
           else
             IMAGE_TAG="R1_UNIFIED.$DATE_TAG-${{ github.run_number }}-hotfix"
@@ -75,7 +75,7 @@ jobs:
         id: image-tag
         run: |
           DATE_TAG=$(date +%d%m%y)
-          if [ "${{ github.ref_name }}" = "feature/obsrv-service" ]; then
+          if [ "${{ github.ref_name }}" = "main" ]; then
             IMAGE_TAG="R2_CACHE.$DATE_TAG-${{ github.run_number }}"
           else
             IMAGE_TAG="R2_CACHE.$DATE_TAG-${{ github.run_number }}-hotfix"
