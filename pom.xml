@@ -33,7 +33,7 @@
 		<java.target.runtime>11</java.target.runtime>
 		<jackson-jaxrs.version>1.9.13</jackson-jaxrs.version>
 		<scoverage.plugin.version>1.4.0</scoverage.plugin.version>
-		<log4j.version>2.23.1</log4j.version>
+		<log4j.version>2.25.3</log4j.version>
 	</properties>
 
 	<repositories>
