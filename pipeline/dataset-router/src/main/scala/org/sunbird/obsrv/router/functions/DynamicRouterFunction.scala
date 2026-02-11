@@ -94,19 +94,10 @@ object TimestampKeyParser {
   private def parseDateTime(datasetConfig: DatasetConfig, value: String): TimestampKey = {
     try {
       datasetConfig.keysConfig.tsFormat.get match {
-        case "epoch" => TimestampKey(isValid = true, addTimeZone(datasetConfig, new DateTime(value.toLong, DateTimeZone.UTC)).asInstanceOf[AnyRef])
+        case "epoch" => TimestampKey(isValid = true, addTimeZone(datasetConfig, new DateTime(value.toLong)).asInstanceOf[AnyRef])
         case _ =>
-          // Parse as local datetime and explicitly create DateTime in UTC timezone
           val dtf = DateTimeFormat.forPattern(datasetConfig.keysConfig.tsFormat.get)
-          val localDT = dtf.parseLocalDateTime(value)
-          // Create DateTime from local fields, treating them as UTC
-          val parsedDateTime = new DateTime(
-            localDT.getYear, localDT.getMonthOfYear, localDT.getDayOfMonth,
-            localDT.getHourOfDay, localDT.getMinuteOfHour, localDT.getSecondOfMinute,
-            localDT.getMillisOfSecond, DateTimeZone.UTC
-          )
-          // For text format dates, don't add timezone offset (only for epoch timestamps)
-          TimestampKey(isValid = true, parsedDateTime.getMillis.asInstanceOf[AnyRef])
+          TimestampKey(isValid = true, addTimeZone(datasetConfig, dtf.parseDateTime(value)).asInstanceOf[AnyRef])
       }
     } catch {
       case _: Exception => TimestampKey(isValid = false, null)
@@ -116,10 +107,8 @@ object TimestampKeyParser {
   private def addTimeZone(datasetConfig: DatasetConfig, dateTime: DateTime): Long = {
     if (datasetConfig.datasetTimezone.isDefined) {
       val tz = DateTimeZone.forTimeZone(TimeZone.getTimeZone(datasetConfig.datasetTimezone.get))
-      val offsetInMilliseconds = tz.getOffset(dateTime.getMillis)
-      val baseMillis = dateTime.getMillis
-      val result = baseMillis + offsetInMilliseconds
-      result
+      val offsetInMilliseconds = tz.getOffset(dateTime)
+      dateTime.plusMillis(offsetInMilliseconds).getMillis
     } else {
       dateTime.getMillis
     }
