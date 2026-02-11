@@ -39,21 +39,84 @@ phases:
       - REPO_NAME=$(basename "$FullRepository_name")
       - export REPO_NAME
       - export SONAR_PROJECT="$REPO_NAME"
+      # GitHub App authentication using Python
+      - echo "$PRIVATE_KEY_BASE64" | base64 -d > /tmp/gh_key.pem
+      - pip install pyjwt cryptography requests
       - |
-        bash -c '
-        PRIVATE_KEY=$(echo "$PRIVATE_KEY_BASE64" | base64 -d)
-        HEADER=$(echo -n "{\"alg\":\"RS256\",\"typ\":\"JWT\"}" | base64 | tr -d "\n")
-        PAYLOAD=$(echo -n "{\"iat\":$(date +%s),\"exp\":$(($(date +%s)+600)),\"iss\":\"$APP_ID\"}" | base64 | tr -d "\n")
-        SIGNATURE=$(echo -n "$HEADER.$PAYLOAD" | openssl dgst -sha256 -sign <(echo "$PRIVATE_KEY") | base64 | tr -d "\n")
-        JWT="$HEADER.$PAYLOAD.$SIGNATURE"
-        ACCESS_TOKEN=$(curl -s -X POST -H "Authorization: Bearer $JWT" -H "Accept: application/vnd.github+json" "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r ".token")
-        if [[ -z "$ACCESS_TOKEN" ]] || [[ "$ACCESS_TOKEN" == "null" ]]; then echo "Error: Failed to generate access token."; exit 1; fi
-        echo "Access token generated successfully"
+        python3 << 'EOF' > /tmp/token_output.txt
+        import jwt
+        import time
+        import requests
+        import os
+        import sys
+
+        try:
+            # Read private key
+            with open('/tmp/gh_key.pem', 'r') as f:
+                private_key = f.read()
+            
+            # Get environment variables
+            app_id = os.getenv('APP_ID')
+            installation_id = os.getenv('INSTALLATION_ID')
+            
+            if not app_id or not installation_id:
+                print("ERROR: Missing APP_ID or INSTALLATION_ID")
+                sys.exit(1)
+            
+            # Create JWT
+            now = int(time.time())
+            payload = {
+                'iat': now,
+                'exp': now + 600,
+                'iss': app_id
+            }
+            
+            token = jwt.encode(payload, private_key, algorithm='RS256')
+            
+            # Make API request
+            headers = {
+                'Authorization': f'Bearer {token}',
+                'Accept': 'application/vnd.github+json'
+            }
+            
+            url = f"https://api.github.com/app/installations/{installation_id}/access_tokens"
+            response = requests.post(url, headers=headers)
+            
+            if response.status_code == 201:
+                access_token = response.json().get('token', '')
+                print(f"TOKEN:{access_token}")
+            else:
+                print(f"ERROR: {response.status_code} - {response.text}")
+                sys.exit(1)
+                
+        except Exception as e:
+            print(f"ERROR: {str(e)}")
+            sys.exit(1)
+        EOF
+      - cat /tmp/token_output.txt
+      - |
+        # Extract and validate token
+        if grep -q "ERROR:" /tmp/token_output.txt; then
+          echo "Failed to get access token:"
+          cat /tmp/token_output.txt
+          exit 1
+        fi
+        
+        ACCESS_TOKEN=$(grep "TOKEN:" /tmp/token_output.txt | cut -d':' -f2)
+        
+        if [[ -z "$ACCESS_TOKEN" ]]; then
+          echo "ERROR: Failed to extract access token"
+          cat /tmp/token_output.txt
+          exit 1
+        fi
+        
+        echo "Access token generated successfully (length: ${#ACCESS_TOKEN})"
+        export ACCESS_TOKEN
+      
         git config --global user.email "noreply@github.com"
         git config --global user.name "flowsource-integration"
         echo "Cloning centralized utility repo..."
         git clone https://x-access-token:${ACCESS_TOKEN}@github.com/Cognizant-SPE/lms-cicd-scripts.git /tmp/lms-cicd-scripts
-        '
       - |
         if [ "$RUN_CHECKMARX" = "true" ]
         then
@@ -104,3 +167,4 @@ phases:
     commands:
 
       - bash /tmp/lms-cicd-scripts/utility/script/pr-scans-results-comment.sh
+
