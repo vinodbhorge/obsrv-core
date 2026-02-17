@@ -128,7 +128,7 @@ phases:
     commands:
      mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.13 -DCLOUD_STORE_VERSION=1.4.8.1
       - echo "No gradle build. Skipping unit tests."
-      - PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
+      - export PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
       - |
         echo "...........* RUNNING SONAR SCAN *.........."
         if [ "$RUN_SONARSCAN" = "true" ]
