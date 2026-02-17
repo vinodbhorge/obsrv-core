@@ -170,4 +170,3 @@ phases:
     commands:
 
       - bash /tmp/lms-cicd-scripts/utility/script/pr-scans-results-comment.sh
-
