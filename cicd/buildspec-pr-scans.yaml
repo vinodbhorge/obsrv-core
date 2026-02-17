@@ -151,7 +151,12 @@ phases:
         else
           echo "...........* SKIPPING BLACKDUCK SCAN *..........."
         fi
-      # Build Docker image for PR
+      # Ensure PR_NUMBER is not empty
+      - |
+        if [ -z "$PR_NUMBER" ]; then
+          echo "ERROR: PR_NUMBER is empty. Cannot build Docker image with empty tag."
+          exit 1
+        fi
       - IMAGE_TAG=$PR_NUMBER
       - export IMAGE_TAG
       - echo "Building the Docker image...$REPO_NAME:$IMAGE_TAG"
