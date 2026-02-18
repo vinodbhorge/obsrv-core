@@ -32,11 +32,11 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto21
     commands:
       - FullRepository_name=$(echo $CODEBUILD_SOURCE_REPO_URL | sed 's|https://github.com/||' | sed 's|.git$||')
       - export FullRepository_name
-      - REPO_NAME=$(basename "$FullRepository_name")
+      - REPO_NAME=$(basename "$FullRepository_name")"-api-service"
       - export REPO_NAME
       - export SONAR_PROJECT="$REPO_NAME"
       # GitHub App authentication using Python
@@ -117,6 +117,7 @@ phases:
         git config --global user.name "flowsource-integration"
         echo "Cloning centralized utility repo..."
         git clone https://x-access-token:${ACCESS_TOKEN}@github.com/Cognizant-SPE/lms-cicd-scripts.git /tmp/lms-cicd-scripts
+      - cd command-service
       - |
         if [ "$RUN_CHECKMARX" = "true" ]
         then
@@ -126,8 +127,7 @@ phases:
         fi
   pre_build:
     commands:
-     mvn clean install -DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.13 -DCLOUD_STORE_VERSION=1.4.8.1
-      - echo "No gradle build. Skipping unit tests."
+      - npm install
       - PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
       - |
         echo "...........* RUNNING SONAR SCAN *.........."
@@ -145,26 +145,43 @@ phases:
         then
           RELEASE_NAME="PR"
           export RELEASE_NAME
-          export DETECTOR_SEARCH_DEPTH=0
-          export DETECT_MAVEN_BUILD_COMMAND="-DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.13 -DCLOUD_STORE_VERSION=1.4.8.1"
           bash /tmp/lms-cicd-scripts/utility/script/blackduck-scan.sh
         else
           echo "...........* SKIPPING BLACKDUCK SCAN *..........."
         fi
-      # - IMAGE_TAG=$PR_NUMBER
-      # - export IMAGE_TAG
-      # - echo "Building the Docker image...$REPO_NAME:$IMAGE_TAG"
-      # - docker build -t $REPO_NAME:$IMAGE_TAG .
-      # - |
-      #   echo "...........* TWISTCLI  SCAN BLOCK  *.........."
-      #   if [ "$RUN_TLCLISCAN" = "true" ]
-      #   then
-      #     bash /tmp/lms-cicd-scripts/utility/script/twistcli-scan.sh
-      #   else
-      #     echo "...........* SKIPPING TWISTCLI SCAN *.........."
-      #   fi
+      - IMAGE_TAG=$PR_NUMBER
+      - export IMAGE_TAG
+      - echo "Building the Docker image...$REPO_NAME:$IMAGE_TAG"
+      - docker build -t $REPO_NAME:$IMAGE_TAG .
+      - |
+        echo "...........* TWISTCLI  SCAN BLOCK  *.........."
+        if [ "$RUN_TLCLISCAN" = "true" ]
+        then
+          bash /tmp/lms-cicd-scripts/utility/script/twistcli-scan.sh
+        else
+          echo "...........* SKIPPING TWISTCLI SCAN *.........."
+        fi
+      - |
+        echo "...........* PRISMA SCAN BLOCK  *.........."
+        if [ "$RUN_TLCLISCAN" = "true" ]
+        then
+          bash /tmp/lms-cicd-scripts/utility/script/prisma-scan.sh $REPO_NAME $IMAGE_TAG
+        else
+          echo "...........* SKIPPING PRISMA SCAN *.........."
+        fi
   post_build:
     commands:
-
       - bash /tmp/lms-cicd-scripts/utility/script/pr-scans-results-comment.sh
-
+      - |
+        PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
+        if [ -f prisma_scan_results.md ]; then
+          echo "Posting Prisma scan report to PR #$PR_NUMBER..."
+          gh pr comment $PR_NUMBER --body-file prisma_scan_results.md
+        else
+          echo "Warning: prisma_scan_results.md not found, skipping comment."
+        fi
+      - |
+        if [ -f prisma_flag.txt ] && [ "$(cat prisma_flag.txt)" = "False" ]; then
+          echo "Prisma scan failed: Critical or High vulnerabilities found."
+          exit 1
+        fi
