@@ -126,7 +126,6 @@ phases:
         fi
   pre_build:
     commands:
-      - npm install
       - PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
       - |
         echo "...........* RUNNING SONAR SCAN *.........."
