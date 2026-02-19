@@ -185,8 +185,8 @@ phases:
   post_build:
     commands:
       - |
-        if [ -n "$PR_NUMBER" ]; then
-          bash /tmp/lms-cicd-scripts/utility/script/pr-scans-results-comment.sh
+        if [ -n "$PR_NUMBER" ] && [ "$PR_NUMBER" != "" ]; then
+          bash /tmp/lms-cicd-scripts/utility/script/pr-scans-results-comment.sh || echo "PR comment script failed, but continuing as this is non-fatal."
         else
           echo "No PR number found, skipping PR scan results comment."
         fi
