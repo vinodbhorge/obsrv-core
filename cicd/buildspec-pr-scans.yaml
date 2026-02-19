@@ -142,7 +142,6 @@ phases:
         fi
   pre_build:
     commands:
-      - npm install
       - echo "No gradle build. Skipping unit tests."
       - PR_NUMBER=$(echo $CODEBUILD_SOURCE_VERSION | sed 's/pr\///')
       - export PR_NUMBER
