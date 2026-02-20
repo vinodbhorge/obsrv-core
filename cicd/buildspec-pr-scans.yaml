@@ -32,13 +32,29 @@ env:
 phases:
   install:
     runtime-versions:
-      java: corretto11
+      java: corretto21
     commands:
       - FullRepository_name=$(echo $CODEBUILD_SOURCE_REPO_URL | sed 's|https://github.com/||' | sed 's|.git$||')
       - export FullRepository_name
       - REPO_NAME=$(basename "$FullRepository_name")
       - export REPO_NAME
       - export SONAR_PROJECT="$REPO_NAME"
+      # - |
+      #   bash -c '
+      #   PRIVATE_KEY=$(echo "$PRIVATE_KEY_BASE64" | base64 -d)
+      #   HEADER=$(echo -n "{\"alg\":\"RS256\",\"typ\":\"JWT\"}" | base64 | tr -d "\n")
+      #   PAYLOAD=$(echo -n "{\"iat\":$(date +%s),\"exp\":$(($(date +%s)+600)),\"iss\":\"$APP_ID\"}" | base64 | tr -d "\n")
+      #   SIGNATURE=$(echo -n "$HEADER.$PAYLOAD" | openssl dgst -sha256 -sign <(echo "$PRIVATE_KEY") | base64 | tr -d "\n")
+      #   JWT="$HEADER.$PAYLOAD.$SIGNATURE"
+      #   ACCESS_TOKEN=$(curl -s -X POST -H "Authorization: Bearer $JWT" -H "Accept: application/vnd.github+json" "https://api.github.com/app/installations/$INSTALLATION_ID/access_tokens" | jq -r ".token")
+      #   if [[ -z "$ACCESS_TOKEN" ]] || [[ "$ACCESS_TOKEN" == "null" ]]; then echo "Error: Failed to generate access token."; exit 1; fi
+      #   echo "Access token generated successfully"
+      #   git config --global user.email "noreply@github.com"
+      #   git config --global user.name "flowsource-integration"
+      #   echo "Cloning centralized utility repo..."
+      #   git clone https://x-access-token:${ACCESS_TOKEN}@github.com/Cognizant-SPE/lms-cicd-scripts.git /tmp/lms-cicd-scripts
+      #   '
+
       # GitHub App authentication using Python
       - echo "$PRIVATE_KEY_BASE64" | base64 -d > /tmp/gh_key.pem
       - pip install pyjwt cryptography requests
@@ -112,7 +128,7 @@ phases:
         
         echo "Access token generated successfully (length: ${#ACCESS_TOKEN})"
         export ACCESS_TOKEN
-      
+        
         git config --global user.email "noreply@github.com"
         git config --global user.name "flowsource-integration"
         echo "Cloning centralized utility repo..."
@@ -145,8 +161,6 @@ phases:
         then
           RELEASE_NAME="PR"
           export RELEASE_NAME
-          export DETECTOR_SEARCH_DEPTH=0
-          export DETECT_MAVEN_BUILD_COMMAND="-DskipTests -DCLOUD_STORE_GROUP_ID=org.sunbird -DCLOUD_STORE_ARTIFACT_ID=cloud-store-sdk_2.13 -DCLOUD_STORE_VERSION=1.4.8.1"
           bash /tmp/lms-cicd-scripts/utility/script/blackduck-scan.sh
         else
           echo "...........* SKIPPING BLACKDUCK SCAN *..........."
