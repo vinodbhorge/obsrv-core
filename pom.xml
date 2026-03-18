@@ -86,6 +86,17 @@
 				<artifactId>woodstox-core</artifactId>
 				<version>6.7.0</version>
 			</dependency>
+			<!-- Fix CVE-2024-23944 (HIGH): Apache ZooKeeper authorization bypass -->
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+				<version>3.9.2</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper-jute</artifactId>
+				<version>3.9.2</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
