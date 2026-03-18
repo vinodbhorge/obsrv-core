@@ -75,7 +75,18 @@
                     <groupId>org.mozilla</groupId>
                     <artifactId>rhino</artifactId>
                 </exclusion>
+                <!-- Fix BDSA-2025-20661 (MEDIUM): exclude vulnerable mailapi from json-schema-validator -->
+                <exclusion>
+                    <groupId>com.sun.mail</groupId>
+                    <artifactId>mailapi</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Fix BDSA-2025-20661 (MEDIUM): safe mailapi replacing json-schema-validator transitive -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>mailapi</artifactId>
+            <version>1.6.8</version>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>

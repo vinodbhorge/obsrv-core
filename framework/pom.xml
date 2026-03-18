@@ -109,12 +109,23 @@
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
                 </exclusion>
+                <!-- Fix CVE-2023-43642 / BDSA-2023-2110/2111/2113: exclude vulnerable snappy-java -->
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
             <groupId>at.yawk.lz4</groupId>
             <artifactId>lz4-java</artifactId>
             <version>1.10.3</version>
+        </dependency>
+        <!-- Fix CVE-2023-43642 / BDSA-2023-2110/2111/2113: safe snappy-java replacing kafka-clients transitive -->
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>1.1.10.5</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

@@ -68,10 +68,10 @@
 				<artifactId>postgresql</artifactId>
 				<version>42.7.7</version>
 			</dependency>
-			<!-- Fix BDSA-2025-20661 (MEDIUM): SMTP injection in Jakarta Mail / javax.mail -->
+			<!-- Fix BDSA-2025-20661 (MEDIUM): SMTP injection in Jakarta Mail / mailapi -->
 			<dependency>
 				<groupId>com.sun.mail</groupId>
-				<artifactId>javax.mail</artifactId>
+				<artifactId>mailapi</artifactId>
 				<version>1.6.8</version>
 			</dependency>
 			<!-- Fix CVE-2023-43642, BDSA-2023-2110/2111/2113 (HIGH/MEDIUM): snappy-java integer overflow / DoS -->

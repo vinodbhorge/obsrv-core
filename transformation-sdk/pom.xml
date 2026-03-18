@@ -45,7 +45,18 @@
                     <groupId>com.fasterxml.jackson.core</groupId>
                     <artifactId>jackson-annotations</artifactId>
                 </exclusion>
+                <!-- Fix BDSA-2022-2582 (MEDIUM): exclude vulnerable woodstox-core from JSONata4Java -->
+                <exclusion>
+                    <groupId>com.fasterxml.woodstox</groupId>
+                    <artifactId>woodstox-core</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <!-- Fix BDSA-2022-2582 (MEDIUM): safe woodstox-core replacing JSONata4Java transitive -->
+        <dependency>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+            <version>6.7.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.bancolombia</groupId>
