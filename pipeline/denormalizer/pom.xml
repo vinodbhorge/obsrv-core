@@ -37,6 +37,10 @@
                     <groupId>com.esotericsoftware.kryo</groupId>
                     <artifactId>kryo</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -171,6 +175,14 @@
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.zookeeper</groupId>
+                    <artifactId>zookeeper</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- <dependency>
@@ -204,7 +216,11 @@
                     <groupId>org.lz4</groupId>
                     <artifactId>lz4-java</artifactId>
                 </exclusion>
-			</exclusions>
+			                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		 <dependency>
             <groupId>org.apache.commons</groupId>
@@ -246,6 +262,13 @@
             <artifactId>zookeeper</artifactId>
             <version>3.9.2</version>
             <scope>test</scope>
+        
+            <exclusions>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.zonky.test</groupId>
@@ -271,6 +294,12 @@
             <version>${flink.version}</version>
             <scope>test</scope>
             <classifier>tests</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.xerial.snappy</groupId>
+                    <artifactId>snappy-java</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
