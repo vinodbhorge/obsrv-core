@@ -12,6 +12,7 @@ on:
       - synchronize
     paths:
       - '**/pom.xml'
+  workflow_dispatch:   # allows manual trigger from the Actions tab on any branch
 
 jobs:
   dependency-submission:
