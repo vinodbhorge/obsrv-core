@@ -7,9 +7,8 @@ on:
     paths:
       - '**/pom.xml'
   pull_request:
-    types:
-      - opened
-      - synchronize
+    branches:
+      - main
     paths:
       - '**/pom.xml'
   workflow_dispatch:   # allows manual trigger from the Actions tab on any branch
