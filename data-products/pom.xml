@@ -17,7 +17,7 @@
         <spark.version>3.1.0</spark.version>
         <scoverage.plugin.version>1.4.0</scoverage.plugin.version>
         <java.target.runtime>11</java.target.runtime>
-        <log4j.version>2.14.1</log4j.version>
+        <log4j.version>2.25.4</log4j.version>
         <!-- <jackson-bom.version>2.13.4.20221013</jackson-bom.version> -->
         <jackson-bom.version>2.17.2</jackson-bom.version>
     </properties>
