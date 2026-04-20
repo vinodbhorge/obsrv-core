@@ -30,4 +30,4 @@ jobs:
           java-version: '11'
 
       - name: Submit full dependency tree to GitHub
-        uses: advanced-security/maven-dependency-submission-action@v4
+        uses: advanced-security/maven-dependency-submission-action@v5
