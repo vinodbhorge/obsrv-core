@@ -28,7 +28,7 @@ jobs:
           cd ./framework
           mvn clean install -DskipTests
       - name: Upload Framework Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: framework-${{ steps.get-tag.outputs.tag_name }}.jar
           path: ./framework/target/framework-1.0.0.jar
@@ -39,7 +39,7 @@ jobs:
           cd ./dataset-registry
           mvn clean install -DskipTests
       - name: Upload Dataset Registry Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dataset-registry-${{ steps.get-tag.outputs.tag_name }}.jar
           path: ./dataset-registry/target/dataset-registry-1.0.0.jar
@@ -78,7 +78,7 @@ jobs:
           cd ./pipeline
           mvn clean install -DskipTests
       - name: Upload Data Pipeline Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{matrix.image}}-${{ steps.get-tag.outputs.tag_name }}.jar
           path: ./pipeline/${{matrix.image}}/target/${{matrix.image}}-1.0.0.jar
