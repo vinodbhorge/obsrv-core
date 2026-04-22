@@ -1,0 +1,32 @@
+name: Dependency Submission
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/pom.xml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/pom.xml'
+  workflow_dispatch:   # allows manual trigger from the Actions tab on any branch
+
+jobs:
+  dependency-submission:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # required to submit the dependency snapshot to GitHub
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Submit full dependency tree to GitHub
+        uses: advanced-security/maven-dependency-submission-action@v4

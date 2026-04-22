@@ -1,0 +1,32 @@
+version: 2
+updates:
+  # Single root entry — Dependabot follows <modules> tags in the root pom.xml
+  # and automatically covers all submodules:
+  #   framework, dataset-registry, transformation-sdk, data-products,
+  #   pipeline (extractor, preprocessor, denormalizer, transformer,
+  #            dataset-router, unified-pipeline, cache-indexer, hudi-connector)
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Kolkata"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Keep GitHub Actions pinned versions updated across all 3 workflows.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Asia/Kolkata"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(ci)"
