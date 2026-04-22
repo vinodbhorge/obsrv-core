@@ -1,4 +1,4 @@
-FROM --platform=linux/x86_64 flink:1.20-scala_2.12-java11
+FROM --platform=linux/x86_64 public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11
 USER flink
 # RUN mkdir $FLINK_HOME/custom-lib
 RUN wget https://repo1.maven.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-10.0/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar
