@@ -20,21 +20,22 @@
 		<module>dataset-registry</module>
 		<module>transformation-sdk</module>
 		<module>pipeline</module>
-		<module>data-products</module>
 	</modules>
 
 	<properties>
 		<!-- maven specific properties -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scala.maj.version>2.12</scala.maj.version>
-		<scala.version>2.12.11</scala.version>
+		<scala.version>2.12.18</scala.version>
 		<flink.version>1.20.0</flink.version>
 		<flink.maj.version>1.20</flink.maj.version>
-		<kafka.version>3.7.1</kafka.version>
+		<!-- Fix CVE-2026-35554 (CVSS 8.7): Kafka producer message corruption via buffer pool race condition -->
+		<kafka.version>3.9.2</kafka.version>
 		<java.target.runtime>11</java.target.runtime>
 		<jackson-jaxrs.version>1.9.13</jackson-jaxrs.version>
 		<scoverage.plugin.version>1.4.0</scoverage.plugin.version>
-		<log4j.version>2.14.1</log4j.version>
+		<!-- Fix CVE-2026-34477 (Medium), CVE-2026-34478 (Medium) -->
+		<log4j.version>2.25.4</log4j.version>
 	</properties>
 
 	<repositories>
@@ -60,6 +61,63 @@
 <!--			<url>http://scala-tools.org/repo-releases</url>-->
 <!--		</pluginRepository>-->
 	</pluginRepositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Fix BDSA-2025-5099 (HIGH): PostgreSQL JDBC channel-binding bypass -->
+			<dependency>
+				<groupId>org.postgresql</groupId>
+				<artifactId>postgresql</artifactId>
+				<version>42.7.7</version>
+			</dependency>
+			<!-- Fix BDSA-2025-20661 (MEDIUM): SMTP injection in Jakarta Mail / mailapi -->
+			<dependency>
+				<groupId>com.sun.mail</groupId>
+				<artifactId>mailapi</artifactId>
+				<version>1.6.8</version>
+			</dependency>
+			<!-- Fix CVE-2023-43642, BDSA-2023-2110/2111/2113 (HIGH/MEDIUM): snappy-java integer overflow / DoS -->
+			<dependency>
+				<groupId>org.xerial.snappy</groupId>
+				<artifactId>snappy-java</artifactId>
+				<version>1.1.10.5</version>
+			</dependency>
+			<!-- Fix BDSA-2022-2582 (MEDIUM): Woodstox stack-based buffer overflow -->
+			<dependency>
+				<groupId>com.fasterxml.woodstox</groupId>
+				<artifactId>woodstox-core</artifactId>
+				<version>6.7.0</version>
+			</dependency>
+			<!-- Fix CVE-2024-23944, CVE-2026-24281 (CVSS 7.4), CVE-2026-24308 (HIGH): ZooKeeper auth bypass + hostname verification bypass + config mishandling -->
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper</artifactId>
+				<version>3.9.5</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.zookeeper</groupId>
+				<artifactId>zookeeper-jute</artifactId>
+				<version>3.9.5</version>
+			</dependency>
+			<!-- Fix CVE-2023-6378 (MEDIUM): Logback serialization vulnerability -->
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>1.5.18</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.5.18</version>
+			</dependency>
+			<!-- Fix CVE-2024-47554 (MEDIUM): Apache Commons IO path traversal -->
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>2.15.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>
