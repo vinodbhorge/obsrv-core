@@ -7,6 +7,66 @@ COPY --from=build-core /root/.m2 /root/.m2
 COPY . /app
 RUN mvn clean package -DskipTests -f /app/pipeline/pom.xml
 
+FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS extractor-image
+USER flink
+RUN mkdir -p $FLINK_HOME/usrlib && \
+    mkdir -p $FLINK_HOME/plugins/flink-s3-fs-hadoop && \
+    mv $FLINK_HOME/opt/flink-s3-fs-hadoop-*.jar $FLINK_HOME/plugins/flink-s3-fs-hadoop/
+RUN if [ -f "$FLINK_HOME/conf/config.yaml" ]; then \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/config.yaml; \
+    else \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/flink-conf.yaml; \
+    fi
+COPY --from=build-pipeline /app/pipeline/extractor/target/extractor-1.0.0.jar $FLINK_HOME/usrlib/
+
+FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS preprocessor-image
+USER flink
+RUN mkdir -p $FLINK_HOME/usrlib && \
+    mkdir -p $FLINK_HOME/plugins/flink-s3-fs-hadoop && \
+    mv $FLINK_HOME/opt/flink-s3-fs-hadoop-*.jar $FLINK_HOME/plugins/flink-s3-fs-hadoop/
+RUN if [ -f "$FLINK_HOME/conf/config.yaml" ]; then \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/config.yaml; \
+    else \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/flink-conf.yaml; \
+    fi
+COPY --from=build-pipeline /app/pipeline/preprocessor/target/preprocessor-1.0.0.jar $FLINK_HOME/usrlib/
+
+FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS denormalizer-image
+USER flink
+RUN mkdir -p $FLINK_HOME/usrlib && \
+    mkdir -p $FLINK_HOME/plugins/flink-s3-fs-hadoop && \
+    mv $FLINK_HOME/opt/flink-s3-fs-hadoop-*.jar $FLINK_HOME/plugins/flink-s3-fs-hadoop/
+RUN if [ -f "$FLINK_HOME/conf/config.yaml" ]; then \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/config.yaml; \
+    else \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/flink-conf.yaml; \
+    fi
+COPY --from=build-pipeline /app/pipeline/denormalizer/target/denormalizer-1.0.0.jar $FLINK_HOME/usrlib/
+
+FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS transformer-image
+USER flink
+RUN mkdir -p $FLINK_HOME/usrlib && \
+    mkdir -p $FLINK_HOME/plugins/flink-s3-fs-hadoop && \
+    mv $FLINK_HOME/opt/flink-s3-fs-hadoop-*.jar $FLINK_HOME/plugins/flink-s3-fs-hadoop/
+RUN if [ -f "$FLINK_HOME/conf/config.yaml" ]; then \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/config.yaml; \
+    else \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/flink-conf.yaml; \
+    fi
+COPY --from=build-pipeline /app/pipeline/transformer/target/transformer-1.0.0.jar $FLINK_HOME/usrlib/
+
+FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS dataset-router-image
+USER flink
+RUN mkdir -p $FLINK_HOME/usrlib && \
+    mkdir -p $FLINK_HOME/plugins/flink-s3-fs-hadoop && \
+    mv $FLINK_HOME/opt/flink-s3-fs-hadoop-*.jar $FLINK_HOME/plugins/flink-s3-fs-hadoop/
+RUN if [ -f "$FLINK_HOME/conf/config.yaml" ]; then \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/config.yaml; \
+    else \
+        echo 's3.aws.credentials.provider: com.amazonaws.auth.WebIdentityTokenCredentialsProvider' >> $FLINK_HOME/conf/flink-conf.yaml; \
+    fi
+COPY --from=build-pipeline /app/pipeline/dataset-router/target/dataset-router-1.0.0.jar $FLINK_HOME/usrlib/
+
 FROM public.ecr.aws/docker/library/flink:1.20-scala_2.12-java11 AS unified-image
 USER flink
 # Move the bundled flink-s3-fs-hadoop plugin from opt/ to the required plugins subfolder.
