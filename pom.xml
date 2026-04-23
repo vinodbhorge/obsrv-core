@@ -29,7 +29,8 @@
 		<scala.version>2.12.18</scala.version>
 		<flink.version>1.20.0</flink.version>
 		<flink.maj.version>1.20</flink.maj.version>
-		<kafka.version>3.9.1</kafka.version>
+		<!-- Fix CVE-2026-35554 (CVSS 8.7): Kafka producer message corruption via buffer pool race condition -->
+		<kafka.version>3.9.2</kafka.version>
 		<java.target.runtime>11</java.target.runtime>
 		<jackson-jaxrs.version>1.9.13</jackson-jaxrs.version>
 		<scoverage.plugin.version>1.4.0</scoverage.plugin.version>
@@ -86,16 +87,16 @@
 				<artifactId>woodstox-core</artifactId>
 				<version>6.7.0</version>
 			</dependency>
-			<!-- Fix CVE-2024-23944 (HIGH): Apache ZooKeeper authorization bypass; 3.9.3 also fixes transitive Netty 4.1.105, Logback 1.2.13, Commons IO 2.11.0 -->
+			<!-- Fix CVE-2024-23944, CVE-2026-24281 (CVSS 7.4), CVE-2026-24308 (HIGH): ZooKeeper auth bypass + hostname verification bypass + config mishandling -->
 			<dependency>
 				<groupId>org.apache.zookeeper</groupId>
 				<artifactId>zookeeper</artifactId>
-				<version>3.9.3</version>
+				<version>3.9.5</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.zookeeper</groupId>
 				<artifactId>zookeeper-jute</artifactId>
-				<version>3.9.3</version>
+				<version>3.9.5</version>
 			</dependency>
 			<!-- Fix CVE-2023-6378 (MEDIUM): Logback serialization vulnerability -->
 			<dependency>
