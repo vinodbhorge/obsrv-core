@@ -279,9 +279,10 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.9.3</version>
+            <!-- Fix CVE-2026-24281 (CVSS 7.4), CVE-2026-24308, CVE-2025-58457 (Medium) -->
+            <version>3.9.5</version>
             <scope>test</scope>
-        
+
             <exclusions>
                 <exclusion>
                     <groupId>org.xerial.snappy</groupId>

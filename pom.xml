@@ -34,7 +34,8 @@
 		<java.target.runtime>11</java.target.runtime>
 		<jackson-jaxrs.version>1.9.13</jackson-jaxrs.version>
 		<scoverage.plugin.version>1.4.0</scoverage.plugin.version>
-		<log4j.version>2.25.3</log4j.version>
+		<!-- Fix CVE-2026-34477 (Medium), CVE-2026-34478 (Medium) -->
+		<log4j.version>2.25.4</log4j.version>
 	</properties>
 
 	<repositories>
